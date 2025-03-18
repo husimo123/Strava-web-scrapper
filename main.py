@@ -3,7 +3,7 @@ import json
 
 stravasess = 'cqc8oep16vg427qd9gs7jiv8a8dkbbkt'
 mysp = 'ef3b2692-42a5-4efe-b167-99dcaf02fe19'
-myactivity = [13887499261, 13872537505, 13870977175]
+myactivity = [13887499261, 13870977175, 13742684320,13734824328]
 mydepart = []
 myarrivee = []
 
@@ -25,20 +25,37 @@ def getCoordinates(activity_number, strava_session, sp):
 
     )
 
-
-
     #translate data to json
     json_data = json.loads(response.text)
 
-    #Writing data to json file, with appropriate name and folder
-    json_object = json.dumps(json_data, indent=4)
-    with open("C:/Users/hugos/PycharmProjects/strava/GPX_files/" +str(activity_number)+".json", "w") as outfile:
-        outfile.write(json_object)
 
-    #Parse values
+
+    to_file(json_data,"C:/Users/hugos/PycharmProjects/strava/GPX_files/" + str(activity_number) + ".json")
+    # Parse values
     depart = json_data['latlng'][0]
-    arrivee =  json_data['latlng'][-1]
+    arrivee = json_data['latlng'][-1]
+    # Organisation des traces en fonction du départ.
+    # objectif : comparer les valeurs des nouvelles traces avec la moyenne de celles enregistés, si la différence est inférieure a
+    # 0.003 ce qui correspond a 500 m
+    organised_activities = []
+    for i, activity in organised_activities:
+        #Latitude
+        if organised_activities == []:
+            organised_activities[0].append(depart[0])
+        elif (abs(depart[0]) - abs(avg(organised_activities[i]))) < 0.003:
+            print("coucou")
+            organised_activities[i].append(depart[0])
+
+    print(organised_activities)
     return depart, arrivee
+
+
+# Writing data to json file, with appropriate name and folder
+def to_file(data, filename):
+
+    json_object = json.dumps(data, indent=4)
+    with open(filename, "w") as outfile:
+        outfile.write(json_object)
 
 
 # Calcul de la valeur moyenne dans une liste
@@ -63,6 +80,7 @@ def main():
 
     #parsage des valeurs des json
     for i in range(len(mydepart)):
+        print(mydepart[i], myarrivee[i])
         deplat.append(mydepart[i][0])
         deplong.append(mydepart[i][1])
         arrlat.append(myarrivee[i][0])
