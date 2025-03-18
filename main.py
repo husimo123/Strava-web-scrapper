@@ -24,11 +24,22 @@ def getCoordinates(activity_number, strava_session, sp):
     headers=headers
 
     )
+
+
+
     #translate data to json
     json_data = json.loads(response.text)
+
+    #Writing data to json file, with appropriate name and folder
+    json_object = json.dumps(json_data, indent=4)
+    with open("C:/Users/hugos/PycharmProjects/strava/GPX_files/" +str(activity_number)+".json", "w") as outfile:
+        outfile.write(json_object)
+
+    #Parse values
     depart = json_data['latlng'][0]
     arrivee =  json_data['latlng'][-1]
     return depart, arrivee
+
 
 # Calcul de la valeur moyenne dans une liste
 def avg(list_depart):
