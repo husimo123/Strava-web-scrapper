@@ -49,3 +49,27 @@ These differences are smaller than 0.005 degrees. To find the actual distance, y
 
 And for the second pair:
 0.000391×111.32=0.0435 kilometers or approximately 43.5 meters
+
+
+
+    """
+    session = requests.Session()
+
+    session.cookies.set('_strava4_session',strava_session )
+    session.cookies.set('sp', sp)
+
+    #Il faut berner strava en le faisant croire qu'on est un navigateur classique, donc il faut ajouter des entetes.
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3',
+        'Referer': 'https://www.strava.com/activities/'+str(activity_number)
+    }
+    response = session.get(
+        'https://www.strava.com/activities/'+str(activity_number)+'/streams?stream_types%5B%5D=timer_time&stream_types%5B%5D=latlng&_=',
+    headers=headers
+
+    )
+
+
+    #translate data to json
+    json_data = json.loads(response.text)
+"""
