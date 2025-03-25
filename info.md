@@ -32,44 +32,11 @@ format :
 
 https://www.strava.com/activities/ACTIVITYNUMBERTOCOPY
 
+# Comment qu'on fait mtn :
+On prend tous les points qu'on a, départ et arrivé avec la distance parcourue dans
+la cachée. On fait un cercle de diametre de la distance cachée.
+Au bout de plusieurs itérations on va avoir les cercles qui se 
+recouvrent, la ou ils se recouvrent c'est la zone de départ estimée.
 
-
-# infos pour moi
-
-on va faire tous les calculs d'endroit a la fin, puis on va trier les 
-fichiers dans des dossiers a la fin, meme si c'est pas opti de fou ca m'évite de tout réécrire.
-
-
-Il faut savoir que la difference entre *
-    Between [47.478668, -0.565233] and [47.478889, -0.565208]: 47.478889−47.478668=0.000221 degrees
-    Between [47.478571, -0.564751] and [47.478962, -0.56484]: 47.478962−47.478571=0.000391 degrees
-
-These differences are smaller than 0.005 degrees. To find the actual distance, you would multiply these differences by 111.32 kilometers per degree. For example, for the first pair:
-0.000221×111.32=0.0246 kilometers or approximately 24.6 meters.
-
-And for the second pair:
-0.000391×111.32=0.0435 kilometers or approximately 43.5 meters
-
-
-
-    """
-    session = requests.Session()
-
-    session.cookies.set('_strava4_session',strava_session )
-    session.cookies.set('sp', sp)
-
-    #Il faut berner strava en le faisant croire qu'on est un navigateur classique, donc il faut ajouter des entetes.
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3',
-        'Referer': 'https://www.strava.com/activities/'+str(activity_number)
-    }
-    response = session.get(
-        'https://www.strava.com/activities/'+str(activity_number)+'/streams?stream_types%5B%5D=timer_time&stream_types%5B%5D=latlng&_=',
-    headers=headers
-
-    )
-
-
-    #translate data to json
-    json_data = json.loads(response.text)
-"""
+En axe d'amélioration on peut générer un lien qui montre directement sur Google
+Maps ou c'est.
