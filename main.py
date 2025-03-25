@@ -66,27 +66,32 @@ fichiers apres et complexifier les calculs.
 
 
 
-
+# Organise coordinates according to geographic proximity
 def organiseCoordinates(coordinates):
     # List of lists to get the store each run depending on geographical location.
-    organised_activities = []
+    organised_activities = [[]]
+
     # Add the first activity to have something to compare
-    organised_activities.append([[[coordinates[0][0], coordinates[0][1]], coordinates[0][2]]])
-    # Iterate all the cooridnates
-    for latitude, longitude, activity_number in coordinates:
-        # If the depart spot is close to one that is stored -> keep add to that list.
+    organised_activities[0].append(coordinates[0])
+    # Go through all coordinates
+    for coord in coordinates:
+        start = coord[0]
+        # Boolean to check if we need to create a new location (element in organised_activity)
         bool = False
-        for activity in organised_activities: # Go through all organised activities
-            if(latitude == activity[0][0][0]):
-                # Skip the activity, it has already been treated.
-                continue
-            elif (abs(latitude[0]) - abs(activity[0][0][0][0])) < 0.003: # Check geographical distance < 300m
-                activity.append([[[latitude, longitude], activity_number]])
-                bool = True # check if added
-        if not bool: # Create a new activity spot.
-            organised_activities.append([[[latitude, longitude], activity_number]])
-    print(organised_activities)
+        for i in range (0,len(organised_activities)):
+
+            if start == organised_activities[i][0][0]:
+                bool = True
+            elif (abs(start[0]- organised_activities[i][0][0][0]) < 0.004) and (abs(start[1]- organised_activities[i][0][0][1]) < 0.004) :
+                organised_activities[i].append(coord)
+                bool = True
+        if not bool:
+            organised_activities.append([])
+            organised_activities[-1].append(coord)
+    for i in range (0,len(organised_activities)):
+        print(organised_activities[i])
     return organised_activities
+
 
 
 
@@ -157,11 +162,12 @@ def getActivityInfo(activity_number):
         to_file(data,"C:/Users/hugos/PycharmProjects/strava/GPX_files/" + str(activity_number) + ".json")
 
 
+coordinates = []
+coordinates.append(getCoordinates(11718106606))
+coordinates.append(getCoordinates(13742684320))
+coordinates.append(getCoordinates(13757934814))
+coordinates.append(getCoordinates(13870977175))
+coordinates.append(getCoordinates(13887499261))
+organiseCoordinates(coordinates)
 
-zob2 = []
 
-zob2.append(getCoordinates(11718106606))
-zob2.append(getCoordinates(13742684320))
-zob2.append(getCoordinates(13757934814))
-zob2.append(getCoordinates(13870977175))
-organiseCoordinates(zob2)
