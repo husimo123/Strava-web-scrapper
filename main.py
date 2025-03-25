@@ -70,36 +70,24 @@ fichiers apres et complexifier les calculs.
 def organiseCoordinates(coordinates):
     # List of lists to get the store each run depending on geographical location.
     organised_activities = []
-    list = []
-    list.append(coordinates[0])
-    print(f"list : {list}")
-    organised_activities.append(coordinates[0]) # Run 1
-    print(f"organised activities : {organised_activities}")
-    for latitude, longitude, activity in coordinates:
-        print(f"Latitude : {latitude}, Longitude : {longitude}, Activity : {activity}")
-        # Latitude
+    # Add the first activity to have something to compare
+    organised_activities.append([[[coordinates[0][0], coordinates[0][1]], coordinates[0][2]]])
+    # Iterate all the cooridnates
+    for latitude, longitude, activity_number in coordinates:
         # If the depart spot is close to one that is stored -> keep add to that list.
         bool = False
         for activity in organised_activities: # Go through all organised activities
-            print(f"Activity : {activity}")
-            if (abs(latitude) - abs(activity[0])) < 0.003: # Check geographical distance
-                activity.append([latitude, longitude])
+            if(latitude == activity[0][0][0]):
+                # Skip the activity, it has already been treated.
+                continue
+            elif (abs(latitude[0]) - abs(activity[0][0][0][0])) < 0.003: # Check geographical distance < 300m
+                activity.append([[[latitude, longitude], activity_number]])
                 bool = True # check if added
-                print("Added to the same activity")
         if not bool: # Create a new activity spot.
-            list =[]
-            list.append(latitude)
-            list.append(longitude)
-            list2 = []
-            list2.append(list)
-            print(f"New list : {list2}")
-            organised_activities.append(list2)
-            print("Added to a new activity")
-
-
+            organised_activities.append([[[latitude, longitude], activity_number]])
     print(organised_activities)
-    for activity in organised_activities:
-        print(activity)
+    return organised_activities
+
 
 
 # Writing data to json file, with appropriate name and folder
@@ -170,56 +158,10 @@ def getActivityInfo(activity_number):
 
 
 
-
-
-dep, arr, act= getCoordinates(13887499261)
-zob = []
 zob2 = []
-zob.append(dep)
-zob.append(arr)
-zob.append(act)
-zob2.append(zob)
-zob = []
-dep, arr , act= getCoordinates(13870977175)
 
-zob.append(dep)
-zob.append(arr)
-zob.append(act)
-zob2.append(zob)
-zob = []
-dep, arr , act= getCoordinates(13757934814)
-
-zob.append(dep)
-zob.append(arr)
-zob.append(act)
-zob2.append(zob)
-zob = []
-dep, arr , act= getCoordinates(13742684320)
-
-zob.append(dep)
-zob.append(arr)
-zob.append(act)
-zob2.append(zob)
-zob = []
-dep, arr , act= getCoordinates(11718106606)
-
-zob.append(dep)
-zob.append(arr)
-zob.append(act)
-zob2.append(zob)
-zob = []
-print(f"Zob 2 : {zob2}")
+zob2.append(getCoordinates(11718106606))
+zob2.append(getCoordinates(13742684320))
+zob2.append(getCoordinates(13757934814))
+zob2.append(getCoordinates(13870977175))
 organiseCoordinates(zob2)
-
-
-"""
-
-
-for i, coordinate in coord:
-    # Latitude
-    if organised_activities == []:
-        organised_activities[0] = []
-        organised_activities[0].append(coordinate[0])
-
-    elif (abs(depart[0]) - abs(avg(organised_activities[i]))) < 0.003:
-        organised_activities[i].append(coordinate[0])"""
