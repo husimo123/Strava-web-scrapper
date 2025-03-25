@@ -47,25 +47,6 @@ def getCoordinates(activity_number):
     return depart, arrivee, activity_number
 
 
-"""
-Get a list of coordinates and sort them by distance. If you can get the name of the place it corresponds to it would
-be great. There must be a way to do it with BeautifulSoup and google maps.
-
-Calculate the distance done by the runner, and then compare it with the real distance that was collected through the activity.
-
-
-
----
-la jai la logique générale mais ya un pb sur les valeurs. je réitere sur des valeurs que j'ai déjà traité.
-
-Quand on recupere les coordonnées, je renvoie en plus le nom du fichier pour faciliter le lien entre les coordonnées
-et les fichiers. Ce qui permetterai de nommer les courses en fonction du point de départ et eviter d'ouvrir tous les
-fichiers apres et complexifier les calculs.
-
-
-"""
-
-
 
 # Organise coordinates according to geographic proximity
 def organiseCoordinates(coordinates):

@@ -16,7 +16,7 @@ and a person that accepts to be the subject of test.
 
 
 The first step is to get your cookie data. Which can be found once connected
-on the www.strava.com website. Simple open the inspector (F12) and 
+on the www.strava.com website. Simply open the inspector (F12) and 
 go to the Application tab and down to the Cookies. Here you should have a few cookies,
 you need to copy the 'sp' and '_strava4_session' cookies.
 
