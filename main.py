@@ -43,19 +43,63 @@ def getCoordinates(activity_number):
     # Parse values
     depart = json_data['latlng'][0]
     arrivee = json_data['latlng'][-1]
-    # Organisation des traces en fonction du départ.
-    # objectif : comparer les valeurs des nouvelles traces avec la moyenne de celles enregistés, si la différence est inférieure a
-    # 0.003 ce qui correspond a 500 m
+    return depart, arrivee, activity_number
+
+
+"""
+Get a list of coordinates and sort them by distance. If you can get the name of the place it corresponds to it would
+be great. There must be a way to do it with BeautifulSoup and google maps.
+
+Calculate the distance done by the runner, and then compare it with the real distance that was collected through the activity.
+
+
+
+---
+la jai la logique générale mais ya un pb sur les valeurs. je réitere sur des valeurs que j'ai déjà traité.
+
+Quand on recupere les coordonnées, je renvoie en plus le nom du fichier pour faciliter le lien entre les coordonnées
+et les fichiers. Ce qui permetterai de nommer les courses en fonction du point de départ et eviter d'ouvrir tous les
+fichiers apres et complexifier les calculs.
+
+
+"""
+
+
+
+
+def organiseCoordinates(coordinates):
+    # List of lists to get the store each run depending on geographical location.
     organised_activities = []
-    for i, activity in organised_activities:
-        #Latitude
-        if organised_activities == []:
-            organised_activities[0].append(depart[0])
-        elif (abs(depart[0]) - abs(avg(organised_activities[i]))) < 0.003:
-            organised_activities[i].append(depart[0])
+    list = []
+    list.append(coordinates[0])
+    print(f"list : {list}")
+    organised_activities.append(coordinates[0]) # Run 1
+    print(f"organised activities : {organised_activities}")
+    for latitude, longitude, activity in coordinates:
+        print(f"Latitude : {latitude}, Longitude : {longitude}, Activity : {activity}")
+        # Latitude
+        # If the depart spot is close to one that is stored -> keep add to that list.
+        bool = False
+        for activity in organised_activities: # Go through all organised activities
+            print(f"Activity : {activity}")
+            if (abs(latitude) - abs(activity[0])) < 0.003: # Check geographical distance
+                activity.append([latitude, longitude])
+                bool = True # check if added
+                print("Added to the same activity")
+        if not bool: # Create a new activity spot.
+            list =[]
+            list.append(latitude)
+            list.append(longitude)
+            list2 = []
+            list2.append(list)
+            print(f"New list : {list2}")
+            organised_activities.append(list2)
+            print("Added to a new activity")
+
 
     print(organised_activities)
-    return depart, arrivee
+    for activity in organised_activities:
+        print(activity)
 
 
 # Writing data to json file, with appropriate name and folder
@@ -63,16 +107,12 @@ def to_file(data, filename):
     json_object = json.dumps(data, indent=4)
     with open(filename, "w") as outfile:
         outfile.write(json_object)
-
-
 # Calcul de la valeur moyenne dans une liste
 def avg(list_depart):
     moydep = 0
     for i in range(len(list_depart)):
         moydep += list_depart[i]
     return moydep / len(list_depart)
-
-
 def main():
     #On cherche les coordonées de départ et d'arrivée et on les met dans une liste
     for i in range(len(myactivity)):
@@ -95,11 +135,6 @@ def main():
     #Calcul de la moyenne pour estimer le départ
     print("Le depart estimé est en : [" + str(avg(deplat)) + ", " + str(avg(deplong)) + " ]")
     print("L'arrivée estimé est en : [" + str(avg(arrlat)) + ", " + str(avg(arrlong)) + " ]")
-
-
-
-
-
 # Request activity info
 def getActivityInfo(activity_number):
     url = "https://www.strava.com/activities/" + str(activity_number)
@@ -137,3 +172,54 @@ def getActivityInfo(activity_number):
 
 
 
+dep, arr, act= getCoordinates(13887499261)
+zob = []
+zob2 = []
+zob.append(dep)
+zob.append(arr)
+zob.append(act)
+zob2.append(zob)
+zob = []
+dep, arr , act= getCoordinates(13870977175)
+
+zob.append(dep)
+zob.append(arr)
+zob.append(act)
+zob2.append(zob)
+zob = []
+dep, arr , act= getCoordinates(13757934814)
+
+zob.append(dep)
+zob.append(arr)
+zob.append(act)
+zob2.append(zob)
+zob = []
+dep, arr , act= getCoordinates(13742684320)
+
+zob.append(dep)
+zob.append(arr)
+zob.append(act)
+zob2.append(zob)
+zob = []
+dep, arr , act= getCoordinates(11718106606)
+
+zob.append(dep)
+zob.append(arr)
+zob.append(act)
+zob2.append(zob)
+zob = []
+print(f"Zob 2 : {zob2}")
+organiseCoordinates(zob2)
+
+
+"""
+
+
+for i, coordinate in coord:
+    # Latitude
+    if organised_activities == []:
+        organised_activities[0] = []
+        organised_activities[0].append(coordinate[0])
+
+    elif (abs(depart[0]) - abs(avg(organised_activities[i]))) < 0.003:
+        organised_activities[i].append(coordinate[0])"""
