@@ -3,11 +3,102 @@ from requests.exceptions import HTTPError
 import json
 from bs4 import BeautifulSoup
 from math import radians, cos, sin, asin, sqrt
+from shapely.geometry import Point
+import matplotlib.pyplot as plt
+
+
 stravasess = 'cqc8oep16vg427qd9gs7jiv8a8dkbbkt'
 mysp = 'ef3b2692-42a5-4efe-b167-99dcaf02fe19'
-myactivity = [13887499261, 13870977175, 13742684320,13734824328]
+
+myactivity = [13887499261, 13870977175, 13742684320,13734824328,
+              11718106606 , 14003910377,13985575843, 13307719262]
 mydepart = []
 myarrivee = []
+
+colors = [
+    '#FF0000',  # Red
+    '#FFA500',  # Orange
+    '#FFFF00',  # Yellow
+    '#008000',  # Green
+    '#0000FF',  # Blue
+    '#4B0082',  # Indigo
+    '#EE82EE',  # Violet
+    '#FFC0CB',  # Pink
+    '#800000',  # Maroon
+    '#FF69B4',  # Hot Pink
+    '#00FFFF',  # Cyan
+    '#808000',  # Olive
+    '#800080',  # Purple
+    '#00FF00',  # Lime
+    '#FF00FF',  # Magenta
+    '#C0C0C0',  # Gray
+    '#808080',  # Dark Gray
+    '#FFFFFF',  # White
+    '#000000',  # Black
+    '#964B00',  # Brown
+    '#FFD700',  # Gold
+    '#008000',  # Forest Green
+    '#00BFFF',  # Deep Sky Blue
+    '#4B0082',  # Navy Blue
+    '#FF99CC',  # Pastel Pink
+    '#CCFFCC',  # Pale Green
+    '#CCCCFF',  # Light Blue
+    '#FFCC99',  # Light Orange
+    '#99CCFF',  # Sky Blue
+    '#CC99FF',  # Pastel Purple
+    '#FFFF99',  # Light Yellow
+    '#99FF99',  # Pale Lime
+    '#FF99FF',  # Pastel Magenta
+    '#CCFF99',  # Light Green
+    '#99CCCC',  # Pale Cyan
+    '#CCCC99',  # Light Beige
+    '#FFCCCC',  # Light Pink
+    '#CCCC00',  # Light Olive
+    '#CC99CC',  # Pastel Gray
+    '#999999',  # Dark Gray Blue
+    '#666666',  # Dark Gray
+    '#333333',  # Very Dark Gray
+    '#0099CC',  # Teal
+    '#CC0099',  # Plum
+    '#99CC00',  # Lime Green
+    '#009999',  # Aqua
+    '#CC00CC',  # Fuchsia
+    '#9900CC',  # Purple
+    '#00CC99',  # Sea Green
+    '#CC9900',  # Golden Brown
+    '#0099FF',  # Sky Blue
+    '#FF0099',  # Hot Pink
+    '#99FF00',  # Chartreuse
+    '#FFCC00',  # Amber
+    '#00FFCC',  # Pale Turquoise
+    '#CC00FF',  # Pastel Purple
+    '#FF00CC',  # Magenta
+    '#CCFF00',  # Lime Green
+    '#00CCCC',  # Pale Aqua
+    '#CCCCFF',  # Light Lavender
+    '#FFCCCC',  # Pastel Pink
+    '#CCCC00',  # Beige
+    '#CC99FF',  # Pastel Magenta
+    '#99CCCC',  # Pale Cyan
+    '#CCCC99',  # Light Gray Brown
+    '#FFCC99',  # Light Orange
+    '#99CCFF',  # Sky Blue
+    '#CCFFCC',  # Pale Green
+    '#FF99CC',  # Pastel Pink
+    '#CCFF99',  # Light Green
+    '#99FFCC',  # Pale Turquoise
+    '#FFCCFF',  # Pastel Magenta
+    '#CCCCFF',  # Light Lavender
+    '#CCFFFF',  # Pale Aqua
+    '#FFFFCC',  # Light Yellow
+    '#CCFFCC',  # Pale Green
+    '#FFCCCC',  # Pastel Pink
+    '#CCCC00',  # Beige
+    '#CC99CC',  # Pastel Gray
+    '#999999',  # Dark Gray Blue
+    '#666666',  # Dark Gray
+    '#333333',  # Very Dark Gray
+]
 
 
 # Request Data from website, return the text of the page ( with cookies )
@@ -29,6 +120,7 @@ def requestpage(url, activity_number):
         print(f"Http error : {httperr}")
     else:
         print(f"success ! Status code : {response.status_code}")
+
 
     return response
 
@@ -52,12 +144,15 @@ def getCoordinates(activity_number):
 def organiseCoordinates(coordinates):
     # List of lists to get the store each run depending on geographical location.
     organised_activities = [[]]
-
+    act  = [[]] # Same list as above but only activities.
     # Add the first activity to have something to compare
     organised_activities[0].append(coordinates[0])
+    act[0].append(coordinates[0])
+    print(organised_activities)
     # Go through all coordinates
     for coord in coordinates:
         start = coord[0]
+
         # Boolean to check if we need to create a new location (element in organised_activity)
         bool = False
         for i in range (0,len(organised_activities)):
@@ -66,13 +161,14 @@ def organiseCoordinates(coordinates):
                 bool = True
             elif (abs(start[0]- organised_activities[i][0][0][0]) < 0.004) and (abs(start[1]- organised_activities[i][0][0][1]) < 0.004) :
                 organised_activities[i].append(coord)
+                act[i].append(coord[2])
                 bool = True
         if not bool:
             organised_activities.append([])
             organised_activities[-1].append(coord)
-    for i in range (0,len(organised_activities)):
-        print(organised_activities[i])
-    return organised_activities
+            act.append([])
+            act[-1].append(coord[2])
+    return organised_activities, act
 
 
 
@@ -88,28 +184,7 @@ def avg(list_depart):
     for i in range(len(list_depart)):
         moydep += list_depart[i]
     return moydep / len(list_depart)
-def main():
-    #On cherche les coordonées de départ et d'arrivée et on les met dans une liste
-    for i in range(len(myactivity)):
-        depart, arrivee = getCoordinates(myactivity[i], stravasess, mysp)
-        mydepart.append(depart)
-        myarrivee.append(arrivee)
-    # listes pour stocker par latitute et longitude
-    deplat= []
-    deplong= []
-    arrlat= []
-    arrlong = []
 
-    #parsage des valeurs des json
-    for i in range(len(mydepart)):
-        print(mydepart[i], myarrivee[i])
-        deplat.append(mydepart[i][0])
-        deplong.append(mydepart[i][1])
-        arrlat.append(myarrivee[i][0])
-        arrlong.append(myarrivee[i][1])
-    #Calcul de la moyenne pour estimer le départ
-    print("Le depart estimé est en : [" + str(avg(deplat)) + ", " + str(avg(deplong)) + " ]")
-    print("L'arrivée estimé est en : [" + str(avg(arrlat)) + ", " + str(avg(arrlong)) + " ]")
 # Request activity info
 def getActivityInfo(activity_number):
     url = "https://www.strava.com/activities/" + str(activity_number)
@@ -140,15 +215,6 @@ def getActivityInfo(activity_number):
         # Write data to the file
         to_file(data,"C:/Users/hugos/PycharmProjects/strava/GPX_files/" + str(activity_number) + ".json")
 
-"""
-coordinates = []
-coordinates.append(getCoordinates(11718106606))
-coordinates.append(getCoordinates(13742684320))
-coordinates.append(getCoordinates(13757934814))
-coordinates.append(getCoordinates(13870977175))
-coordinates.append(getCoordinates(13887499261))
-organiseCoordinates(coordinates)"""
-
 
 
 # https://www.geeksforgeeks.org/program-distance-two-points-earth/
@@ -175,13 +241,7 @@ def distance(point1, point2):
     return (c * r)
 
 
-# driver code
-lat1 = 53.32055555555556
-lat2 = 53.31861111111111
-lon1 = -1.7297222222222221
-lon2 = -1.6997222222222223
-p1 = [lat1, lon1]
-p2 = [lat2, lon2]
+
 
 # Calculate the distance from the GPX file
 def getdistancedifference(activity_number):
@@ -202,7 +262,58 @@ def getdistancedifference(activity_number):
     return abs(float(d) - float(data["Distance"]))
 
 
-getCoordinates(11718106606)
-getActivityInfo(11718106606)
 
-print(f"Distance hidden by Strava : {getdistancedifference(11718106606)} KM")
+
+# Estimate the main start point
+def estimate_depart(list_activity):
+    # Creer la figure
+    plt.figure()
+    area = 0
+    circles = []
+    for i in range(len(list_activity)):
+        # Info of all activities
+        dep, arr, act = getCoordinates(list_activity[i])
+        getActivityInfo(list_activity[i])
+        distance = getdistancedifference(list_activity[i])
+
+        # On ajoute les points de départ et d'arrivés sous la forme d'objet Shapely
+        circles.append(Point((dep[0],dep[1])).buffer(distance))
+        circles.append(Point((arr[0],arr[1])).buffer(distance))
+
+        # On ajoute les points au tracé.
+        plt.gca().add_patch(plt.Circle((dep[0], dep[1]), distance , color='r', alpha=0.5))
+        plt.gca().add_patch(plt.Circle((arr[0], arr[1]), distance , color='r', alpha=0.5))
+
+
+    # Calculate the area of intersection and union of all circles
+    intersection_area = circles[0]
+    union_area = circles[0]
+    for circle in circles[1:]:
+        intersection_area = intersection_area.intersection(circle)
+        union_area = union_area.union(circle)
+
+    # Plot the intersection area
+    if intersection_area.area >0:
+        plt.gca().add_patch(plt.Polygon(list(intersection_area.exterior.coords), color='b', alpha=0.5))
+        # On recupere le centre de l'intersection et on la marque sur le plot
+        centroid = intersection_area.centroid
+        plt.scatter([centroid.x], [centroid.y], color='k', marker='x', s=100)
+        # on renvoit les coordonées du centre.
+        print("Intersection centroid:", centroid.x, centroid.y)
+    else:
+        print("No intersection found")
+
+    # On affiche le plot.
+    plt.axis('equal')
+    plt.show()
+
+
+coordinates = []
+
+for activity in myactivity:
+    coordinates.append(getCoordinates(activity))
+
+organised_coord, organised_activities = organiseCoordinates(coordinates)
+
+
+estimate_depart(organised_activities[1])
