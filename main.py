@@ -11,7 +11,8 @@ stravasess = 'cqc8oep16vg427qd9gs7jiv8a8dkbbkt'
 mysp = 'ef3b2692-42a5-4efe-b167-99dcaf02fe19'
 
 myactivity = [13887499261, 13870977175, 13742684320,13734824328,
-              11718106606 , 14003910377,13985575843, 13307719262]
+              11718106606 , 14003910377,13985575843, 13307719262,
+              14056422650]
 mydepart = []
 myarrivee = []
 
@@ -111,7 +112,7 @@ def requestpage(url, activity_number):
     # Il faut berner strava en le faisant croire qu'on est un navigateur classique, donc il faut ajouter des entetes.
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3',
-        'Referer': 'https://www.strava.com/activities/' + str(activity_number)
+        'Referer': 'https://www.strava.com/activities/' + str(activity_number) + "/overview"
     }
     try:
         response = session.get(str(url), headers=headers)
@@ -171,8 +172,6 @@ def organiseCoordinates(coordinates):
     return organised_activities, act
 
 
-
-
 # Writing data to json file, with appropriate name and folder
 def to_file(data, filename):
     json_object = json.dumps(data, indent=4)
@@ -215,8 +214,6 @@ def getActivityInfo(activity_number):
         # Write data to the file
         to_file(data,"C:/Users/hugos/PycharmProjects/strava/GPX_files/" + str(activity_number) + ".json")
 
-
-
 # https://www.geeksforgeeks.org/program-distance-two-points-earth/
 def distance(point1, point2):
     # The math module contains a function named
@@ -241,8 +238,6 @@ def distance(point1, point2):
     return (c * r)
 
 
-
-
 # Calculate the distance from the GPX file
 def getdistancedifference(activity_number):
     try:
@@ -260,9 +255,6 @@ def getdistancedifference(activity_number):
             d += distance(data['latlng'][i], data['latlng'][i + 1])
 
     return abs(float(d) - float(data["Distance"]))
-
-
-
 
 # Estimate the main start point
 def estimate_depart(list_activity):
@@ -307,13 +299,18 @@ def estimate_depart(list_activity):
     plt.axis('equal')
     plt.show()
 
-
+"""
 coordinates = []
 
 for activity in myactivity:
     coordinates.append(getCoordinates(activity))
+    getActivityInfo(activity)
 
 organised_coord, organised_activities = organiseCoordinates(coordinates)
+for i in range(len(organised_activities)):
+    if len(organised_activities[i]) > 1:
+        estimate_depart(organised_activities[i])
+    else:
+        print(f"Skipped {organised_activities[i]} because lacked enough data to estimate departure")
 
-
-estimate_depart(organised_activities[1])
+"""

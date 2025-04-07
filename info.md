@@ -32,11 +32,58 @@ format :
 
 https://www.strava.com/activities/ACTIVITYNUMBERTOCOPY
 
-# Comment qu'on fait mtn :
-On prend tous les points qu'on a, départ et arrivé avec la distance parcourue dans
-la cachée. On fait un cercle de diametre de la distance cachée.
-Au bout de plusieurs itérations on va avoir les cercles qui se 
-recouvrent, la ou ils se recouvrent c'est la zone de départ estimée.
+## Fonctionnement :
+Strava masque le point de départ des coureurs afin de cacher leur lieu de vie. En effet, souvent
+les coureurs activent une activité Strava en quittant leur domicile, cependant lorsque leur profil est publique,
+tout le monde a accès à leurs traces GPX, point de départ et d'arrivée ainsi que toutes leurs 
+statistiques de courses.
 
-En axe d'amélioration on peut générer un lien qui montre directement sur Google
-Maps ou c'est.
+Notre script est par définition un web scrapper qui vient chercher sur chaque page d'activités
+d'un athlete donné :
+
+- La trace GPX
+- La distance totale parcourue
+- Le temps total de déplacement
+- Le rythme de course
+
+Ces données sont ensuite stockés dans un fichier JSON pour faciliter
+la lecture et leur traitement, en évitant des requètes redondantes.
+
+Comme expliqué avant, Strava masque le point de départ et d'arrivée de course
+avec un rayon inconnu, notre objectif est de déterminer statistiquement ce départ.
+
+Nous calculons donc pour chaque activité la distance totale parcourue par rapport
+à la distance annoncée par l'activité avec la fonction : 
+
+    getdistancedifference()
+
+Celle-ci somme la distance entre tous les points GPX de la course et la retire à
+la distance annoncée.
+
+Dans la fonction :
+
+    estimate_depart()
+
+On crée deux cercles avec la bibliothèque Shapely pour chaque activité, un pour 
+le départ et un autre pour l'arrivée. C'est la distance calculée précédemment qui est utilisée
+comme rayon, car l'endroit de départ réel est obligatoirement dans un rayon de la distance masquée 
+par Strava.
+
+Ces cercles sont ensuite stockés dans une liste pour déterminer l'intersection des
+cercles avec la fonction *intersection* de Shapely. C'est cette intersection qui va 
+être l'estimation du point de départ réel. Avec assez de données, en théorie, on est capable 
+de trouver l'habitation d'une personne.
+
+
+
+**Remarques :**
+
+Afin d'éviter que le résultat soit erroné par des départs inhabituels, un système
+de tri est implémenté. En effet, une personne peut être en vacances et donc courir 
+dans une autre ville, voire un autre pays. Ce qui rendrait le calcul completement incohérent.
+
+    organiseCoordinates()
+
+Cette fonction tri les activités en fonction de leur proximité géographique dans un 
+rayon de 300 mètres. Au dela, c'est une autre zone d'intérèt qui est créé et qui sera
+traité.
