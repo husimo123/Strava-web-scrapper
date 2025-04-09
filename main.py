@@ -341,6 +341,6 @@ def main(athletenumber):
 
     # Affichage des POI : Point of interest (les différents départs du coureur)
     print(f"Estimated coordinates of each POI : {estimated_coordinates}")
-main(124854044)
+main("ENTREZUNCHIFFRE")
 
 
