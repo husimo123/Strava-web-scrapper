@@ -5,102 +5,18 @@ from bs4 import BeautifulSoup
 from math import radians, cos, sin, asin, sqrt
 from shapely.geometry import Point
 import matplotlib.pyplot as plt
+from selenium import webdriver
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
+from selenium.common.exceptions import TimeoutException
+import time
+import sys
 
 
-stravasess = 'cqc8oep16vg427qd9gs7jiv8a8dkbbkt'
-mysp = 'ef3b2692-42a5-4efe-b167-99dcaf02fe19'
-
-myactivity = [13887499261, 13870977175, 13742684320,13734824328,
-              11718106606 , 14003910377,13985575843, 13307719262,
-              14056422650]
-mydepart = []
-myarrivee = []
-
-colors = [
-    '#FF0000',  # Red
-    '#FFA500',  # Orange
-    '#FFFF00',  # Yellow
-    '#008000',  # Green
-    '#0000FF',  # Blue
-    '#4B0082',  # Indigo
-    '#EE82EE',  # Violet
-    '#FFC0CB',  # Pink
-    '#800000',  # Maroon
-    '#FF69B4',  # Hot Pink
-    '#00FFFF',  # Cyan
-    '#808000',  # Olive
-    '#800080',  # Purple
-    '#00FF00',  # Lime
-    '#FF00FF',  # Magenta
-    '#C0C0C0',  # Gray
-    '#808080',  # Dark Gray
-    '#FFFFFF',  # White
-    '#000000',  # Black
-    '#964B00',  # Brown
-    '#FFD700',  # Gold
-    '#008000',  # Forest Green
-    '#00BFFF',  # Deep Sky Blue
-    '#4B0082',  # Navy Blue
-    '#FF99CC',  # Pastel Pink
-    '#CCFFCC',  # Pale Green
-    '#CCCCFF',  # Light Blue
-    '#FFCC99',  # Light Orange
-    '#99CCFF',  # Sky Blue
-    '#CC99FF',  # Pastel Purple
-    '#FFFF99',  # Light Yellow
-    '#99FF99',  # Pale Lime
-    '#FF99FF',  # Pastel Magenta
-    '#CCFF99',  # Light Green
-    '#99CCCC',  # Pale Cyan
-    '#CCCC99',  # Light Beige
-    '#FFCCCC',  # Light Pink
-    '#CCCC00',  # Light Olive
-    '#CC99CC',  # Pastel Gray
-    '#999999',  # Dark Gray Blue
-    '#666666',  # Dark Gray
-    '#333333',  # Very Dark Gray
-    '#0099CC',  # Teal
-    '#CC0099',  # Plum
-    '#99CC00',  # Lime Green
-    '#009999',  # Aqua
-    '#CC00CC',  # Fuchsia
-    '#9900CC',  # Purple
-    '#00CC99',  # Sea Green
-    '#CC9900',  # Golden Brown
-    '#0099FF',  # Sky Blue
-    '#FF0099',  # Hot Pink
-    '#99FF00',  # Chartreuse
-    '#FFCC00',  # Amber
-    '#00FFCC',  # Pale Turquoise
-    '#CC00FF',  # Pastel Purple
-    '#FF00CC',  # Magenta
-    '#CCFF00',  # Lime Green
-    '#00CCCC',  # Pale Aqua
-    '#CCCCFF',  # Light Lavender
-    '#FFCCCC',  # Pastel Pink
-    '#CCCC00',  # Beige
-    '#CC99FF',  # Pastel Magenta
-    '#99CCCC',  # Pale Cyan
-    '#CCCC99',  # Light Gray Brown
-    '#FFCC99',  # Light Orange
-    '#99CCFF',  # Sky Blue
-    '#CCFFCC',  # Pale Green
-    '#FF99CC',  # Pastel Pink
-    '#CCFF99',  # Light Green
-    '#99FFCC',  # Pale Turquoise
-    '#FFCCFF',  # Pastel Magenta
-    '#CCCCFF',  # Light Lavender
-    '#CCFFFF',  # Pale Aqua
-    '#FFFFCC',  # Light Yellow
-    '#CCFFCC',  # Pale Green
-    '#FFCCCC',  # Pastel Pink
-    '#CCCC00',  # Beige
-    '#CC99CC',  # Pastel Gray
-    '#999999',  # Dark Gray Blue
-    '#666666',  # Dark Gray
-    '#333333',  # Very Dark Gray
-]
-
+# Cookies
+stravasess = 'Enter your Strava session ID'
+mysp = 'Enter your SP here'
 
 # Request Data from website, return the text of the page ( with cookies )
 def requestpage(url, activity_number):
@@ -119,10 +35,15 @@ def requestpage(url, activity_number):
         response.raise_for_status()
     except HTTPError as httperr:
         print(f"Http error : {httperr}")
+
+    # Eviter le crash si on a une mauvaise réponse du serveur.
+    if(response.status_code == 429):
+        print(f"Error, status code : {response.status_code}, you have most likely been banned...")
+        sys.exit()
+    elif(response.status_code != 200):
+        print(f"Error, status code : {response.status_code}")
     else:
-        print(f"success ! Status code : {response.status_code}")
-
-
+        print(f"Success ! Status code : {response.status_code}")
     return response
 
 
@@ -148,22 +69,25 @@ def organiseCoordinates(coordinates):
     act  = [[]] # Same list as above but only activities.
     # Add the first activity to have something to compare
     organised_activities[0].append(coordinates[0])
-    act[0].append(coordinates[0])
+    act[0].append(coordinates[0][2])
     print(organised_activities)
     # Go through all coordinates
     for coord in coordinates:
         start = coord[0]
-
         # Boolean to check if we need to create a new location (element in organised_activity)
         bool = False
         for i in range (0,len(organised_activities)):
-
+            point1 = [start[0], start[1]]
+            point2 = [organised_activities[i][0][0][0], organised_activities[i][0][0][1]]
             if start == organised_activities[i][0][0]:
                 bool = True
-            elif (abs(start[0]- organised_activities[i][0][0][0]) < 0.004) and (abs(start[1]- organised_activities[i][0][0][1]) < 0.004) :
+            #If the distance between the points is less than a kilometer
+            elif (distance(point1, point2) < 1):
                 organised_activities[i].append(coord)
                 act[i].append(coord[2])
                 bool = True
+
+        # if the activity was not added to a list of activities then a new departure point is added.
         if not bool:
             organised_activities.append([])
             organised_activities[-1].append(coord)
@@ -298,19 +222,125 @@ def estimate_depart(list_activity):
     # On affiche le plot.
     plt.axis('equal')
     plt.show()
+    return centroid.x, centroid.y
 
-"""
-coordinates = []
 
-for activity in myactivity:
-    coordinates.append(getCoordinates(activity))
-    getActivityInfo(activity)
+# Get the activities on each page
+def getPageActivites(urls):
+    """Selenium driver config"""
+    profile = webdriver.FirefoxProfile()
+    user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
+    profile.set_preference("general.useragent.override", user_agent)
+    options = webdriver.FirefoxOptions()
+    options.headless = True
+    browser = webdriver.Firefox(options=options)
 
-organised_coord, organised_activities = organiseCoordinates(coordinates)
-for i in range(len(organised_activities)):
-    if len(organised_activities[i]) > 1:
-        estimate_depart(organised_activities[i])
-    else:
-        print(f"Skipped {organised_activities[i]} because lacked enough data to estimate departure")
+    try:
+        # On se connecte d'abord a strava
+        browser.get("https://strava.com")
 
-"""
+        # On ajoute nos cookies pour se connecter a la session
+        cookies = [
+            {
+                'name': '_strava4_session',  # Required field
+                'value': 'cqc8oep16vg427qd9gs7jiv8a8dkbbkt',  # Required field
+                'domain': 'strava.com',  # Optional, but recommended
+                'path': '/',  # Optional, but recommended
+                'httpOnly': True,  # Optional
+                'secure': True  # Optional
+            },
+            {
+                'name': 'sp',  # Required field
+                'value': 'ef3b2692-42a5-4efe-b167-99dcaf02fe19',  # Required field
+                'domain': 'strava.com',  # Optional, but recommended
+                'path': '/',  # Optional, but recommended
+                'httpOnly': True,  # Optional
+                'secure': True  # Optional
+        }
+        ]
+
+        # On ajoute les cookies
+        for cookie in cookies:
+            browser.add_cookie(cookie)
+    except TimeoutException:
+        print("I give up...")
+
+    activities = []
+    # Once connected we iterate the pages :
+    for url in urls:
+        print(f"URL : {url}")
+        print(f"Activities : {activities}")
+        try:
+            # On se connecte a la bonne adresse IP
+            browser.get(url)
+            # On attend que le javascript charge correctement, si on dépasse 10 secondes on abandonne
+            timeout_in_seconds = 10
+            WebDriverWait(browser, timeout_in_seconds).until(
+                EC.presence_of_element_located((By.CLASS_NAME, 'UDqjM'))  # Adjust this to wait for a specific element if needed
+            )
+            # On recupere le code
+            html = browser.page_source
+            html = BeautifulSoup(html, features="html.parser")
+            # Get all the corresponding infos
+            classes = html.find_all(attrs={"class": "UDqjM"})
+
+
+            # Get the activity from the classes
+            for element in classes:
+                # Find all <a> tags within the current element
+                links = element.find_all('a')
+                for link in links:
+                    # Add the activity
+                    href = link.get('href')
+                    activity = href[12:]
+                    activities.append(activity)
+        except TimeoutException:
+            print("I give up...")
+
+    browser.quit()
+
+    return activities
+# Get the links from the bar graph
+def getAtheleteActivities(athletenumber):
+    html = requestpage("https://www.strava.com/athletes/" + str(athletenumber), 124854044)
+
+    # html =requestpage(strava_session, mysp, url, activity_number)
+    html = BeautifulSoup(html.text, features="html.parser")
+    all_activities = []
+    for a in html.find_all('a', href=True):
+        if ("athletes" and "#interval" in a['href']):
+            all_activities.append("https://strava.com" + a['href'])
+
+
+
+    return all_activities
+
+def main(athletenumber):
+    # Get all the links
+    all_links = getAtheleteActivities(athletenumber)
+    all_activities = getPageActivites(all_links)
+
+    coordinates = []
+    for activity in all_activities:
+        # Pour eviter le ban
+        time.sleep(3)
+        coordinates.append(getCoordinates(activity))
+        getActivityInfo(activity)
+
+    # Organise coordinates
+    organised_coord, organised_activities = organiseCoordinates(coordinates)
+    estimated_coordinates = []
+    for i in range(len(organised_activities)):
+        if len(organised_activities[i]) > 1:
+            # Pour eviter le ban
+            time.sleep(5)
+            est_lat, est_lon = estimate_depart(organised_activities[i])
+            estimated_coordinates.append([est_lat, est_lon])
+        else:
+            print(f"Skipped {organised_activities[i]} because lacked enough data to estimate departure")
+
+    # Affichage des POI : Point of interest (les différents départs du coureur)
+    print(f"Estimated coordinates of each POI : {estimated_coordinates}")
+main(124854044)
+
+
